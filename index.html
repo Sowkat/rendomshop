@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orange Shop</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f6f6;font-family:Arial,sans-serif}
@@ -24,22 +25,103 @@ header h2{margin:0}
 .price{font-size:19px;font-weight:bold;color:#f85606}
 .buy{display:block;text-align:center;background:#f85606;color:white;padding:11px;text-decoration:none;border-radius:6px;font-weight:bold}
 footer{background:#222;color:white;text-align:center;padding:20px}
+
+/* Adsterra ad design */
+.ad-slot{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  margin:18px auto;
+  padding:8px;
+  overflow:hidden;
+}
+.ad-label{
+  font-size:10px;
+  color:#999;
+  text-align:center;
+  margin-bottom:5px;
+}
+.ad-728{max-width:750px;min-height:105px}
+.ad-300{max-width:320px;min-height:270px}
+.ad-native{max-width:1000px;min-height:100px}
+
+@media(max-width:767px){
+  .ad-728{display:none}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .card img{height:150px}
+}
 </style>
 </head>
+
 <body>
-<header><h2>🛍️ Orange Shop</h2><b>Best Deals</b></header>
+
+<header>
+  <h2>🛍️ Orange Shop</h2>
+  <b>Best Deals</b>
+</header>
+
+<!-- Ad 1: 728x90 Banner (Desktop) -->
+<div class="ad-slot ad-728">
+  <div>
+    <div class="ad-label">Advertisement</div>
+    <script>
+      atOptions = {
+        'key' : 'af57b705515f7f7751d0f313b40a3539',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    </script>
+    <script src="https://bauval.org/22/af57b705515f7f7751d0f313b40a3539"></script>
+  </div>
+</div>
+
 <section class="hero">
-<h1>সেরা পণ্য, সেরা দামে!</h1>
-<p>আপনার পছন্দের পণ্য কিনুন সহজেই</p>
-<input id="search" class="search" placeholder="পণ্য খুঁজুন...">
+  <h1>সেরা পণ্য, সেরা দামে!</h1>
+  <p>আপনার পছন্দের পণ্য কিনুন সহজেই</p>
+  <input id="search" class="search" placeholder="পণ্য খুঁজুন...">
 </section>
+
+<!-- Ad 2: 300x250 Banner -->
+<div class="ad-slot ad-300">
+  <div>
+    <div class="ad-label">Advertisement</div>
+    <script>
+      atOptions = {
+        'key' : '63ceac39ba2623f6a409f8023178ba20',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    </script>
+    <script src="https://bauval.org/22/63ceac39ba2623f6a409f8023178ba20"></script>
+  </div>
+</div>
+
 <div class="filters" id="categories"></div>
+
 <main class="grid" id="products">পণ্য লোড হচ্ছে...</main>
+
+<!-- Ad 3: Adsterra Native / Container Unit -->
+<div class="ad-slot ad-native">
+  <div style="width:100%">
+    <div class="ad-label">Advertisement</div>
+    <script async="async" data-cfasync="false"
+      src="https://bauval.org/21/ee6d63b872b22659e012b5a0fa3987c8"></script>
+    <div id="container-ee6d63b872b22659e012b5a0fa3987c8"></div>
+  </div>
+</div>
+
 <footer>© 2026 Orange Shop</footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
+
 <script>
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
@@ -76,33 +158,46 @@ function render(){
     (category==="সব"||p.category===category)&&
     (p.name||"").toLowerCase().includes(q)
   );
-  if(!found.length){area.textContent="কোনো পণ্য পাওয়া যায়নি।";return;}
+
+  if(!found.length){
+    area.textContent="কোনো পণ্য পাওয়া যায়নি।";
+    return;
+  }
+
   found.forEach(p=>{
     const card=document.createElement("div");
     card.className="card";
+
     const img=document.createElement("img");
     img.src=p.image||"";
     img.alt=p.name||"";
     img.loading="lazy";
+
     const info=document.createElement("div");
     info.className="info";
+
     const title=document.createElement("h3");
     title.textContent=p.name||"পণ্য";
+
     const price=document.createElement("p");
     price.className="price";
     price.textContent="৳ "+p.price;
+
     const link=document.createElement("a");
     link.className="buy";
     link.textContent="Shop Now";
     link.href=p.url||"#";
     link.target="_blank";
     link.rel="nofollow sponsored noopener";
+
     info.append(title,price,link);
     card.append(img,info);
     area.append(card);
   });
 }
+
 document.getElementById("search").addEventListener("input",render);
 </script>
+
 </body>
 </html>
