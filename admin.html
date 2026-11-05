@@ -66,27 +66,51 @@ const db=firebase.database();
 const $=id=>document.getElementById(id);
 let editingId=null;
 
-auth.onAuthStateChanged(user=>{
-  const allowed=user && user.email==="sowkat420@gmail.com";
-  $("loginBox").classList.toggle("hidden",!!allowed);
-  $("panel").classList.toggle("hidden",!allowed);
-  if(user && !allowed){
-    auth.signOut();
-    $("loginMessage").textContent="এই অ্যাকাউন্ট Admin নয়।";
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+const ADMIN_EMAIL = "sowkat420@gmail.com";
+const provider = new firebase.auth.GoogleAuthProvider();
+
+const $ = id => document.getElementById(id);
+
+// মোবাইলে Google Login
+document.getElementById("googleLoginBtn").onclick = async () => {
+  try {
+    await auth.signInWithRedirect(provider);
+  } catch (error) {
+    $("loginMessage").textContent = error.message;
   }
-  if(allowed)loadProducts();
+};
+
+// Google থেকে ফিরে এলে লগইন যাচাই
+auth.getRedirectResult().catch(error => {
+  $("loginMessage").textContent = error.message;
 });
 
-$("loginBtn").onclick=async()=>{
-  try{
-    await auth.signInWithEmailAndPassword(
-      $("email").value.trim(),
-      $("password").value
-    );
-    $("loginMessage").textContent="লগইন সফল";
-  }catch(e){
-    $("loginMessage").textContent="লগইন হয়নি: "+e.message;
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    $("loginBox").classList.remove("hidden");
+    $("panel").classList.add("hidden");
+    return;
   }
+
+  if ((user.email || "").toLowerCase() !== ADMIN_EMAIL) {
+    $("loginMessage").textContent =
+      "এই Gmail Admin হিসেবে অনুমোদিত নয়।";
+    await auth.signOut();
+    return;
+  }
+
+  $("loginBox").classList.add("hidden");
+  $("panel").classList.remove("hidden");
+
+  loadProducts();
+});
+
+document.getElementById("logoutBtn").onclick = () => {
+  auth.signOut();
 };
 
 $("logoutBtn").onclick=()=>auth.signOut();
