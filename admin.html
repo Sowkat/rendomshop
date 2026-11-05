@@ -19,7 +19,8 @@ button:disabled{opacity:.6}
 .hidden{display:none!important}
 .product{background:#fff3eb;padding:13px;margin:12px 0;border-radius:9px;overflow:hidden}
 .product img{width:75px;height:75px;object-fit:contain;float:right}
-#loginMessage,#message{color:#d33;white-space:pre-wrap}
+#loginMessage,#message{color:#d33;white-space:pre-wrap;overflow-wrap:anywhere}
+#loginMessage:empty,#message:empty{display:none}
 </style>
 </head>
 <body>
@@ -30,7 +31,7 @@ button:disabled{opacity:.6}
 <section id="loginBox" class="box">
 <h3>🔐 Admin Login</h3>
 <p>অনুমোদিত Gmail দিয়ে প্রবেশ করুন।</p>
-<button id="googleLoginBtn">🌐 Continue with Google</button>
+<button id="googleLoginBtn" type="button">🌐 Continue with Google</button>
 <p id="loginMessage"></p>
 </section>
 
@@ -42,8 +43,8 @@ button:disabled{opacity:.6}
 <input id="category" placeholder="ক্যাটাগরি">
 <input id="image" type="url" placeholder="ছবির URL">
 <input id="url" type="url" placeholder="Daraz Affiliate Link">
-<button id="saveBtn">পণ্য সংরক্ষণ</button>
-<button class="secondary" id="resetBtn">নতুন পণ্য</button>
+<button id="saveBtn" type="button">পণ্য সংরক্ষণ</button>
+<button class="secondary" id="resetBtn" type="button">নতুন পণ্য</button>
 <p id="message"></p>
 </div>
 
@@ -52,7 +53,7 @@ button:disabled{opacity:.6}
 <div id="productList">লোড হচ্ছে...</div>
 </div>
 
-<button class="secondary" id="logoutBtn">Logout</button>
+<button class="secondary" id="logoutBtn" type="button">Logout</button>
 </section>
 </main>
 
@@ -62,66 +63,120 @@ button:disabled{opacity:.6}
 <script src="firebase-config.js"></script>
 
 <script>
-firebase.initializeApp(firebaseConfig);
+(function(){
+"use strict";
 
-const auth = firebase.auth();
-const db = firebase.database();
-const provider = new firebase.auth.GoogleAuthProvider();
 const ADMIN_EMAIL = "sowkat420@gmail.com";
 const $ = id => document.getElementById(id);
 
-let editingId = null;
-let redirectHandled = false;
+let auth, db, editingId = null;
+let productsListener = null;
 
-// Google Login
-$("googleLoginBtn").onclick = async () => {
-  $("loginMessage").textContent = "Google Login চালু হচ্ছে...";
-  $("googleLoginBtn").disabled = true;
+function showError(message){
+  $("loginMessage").textContent = message;
+}
 
-  try {
-    await auth.signInWithRedirect(provider);
-  } catch (error) {
-    $("loginMessage").textContent =
-      error.code + "\n" + error.message;
-    $("googleLoginBtn").disabled = false;
+function showPanel(user){
+  if(!user || (user.email || "").toLowerCase() !== ADMIN_EMAIL){
+    $("panel").classList.add("hidden");
+    $("loginBox").classList.remove("hidden");
+    return false;
   }
-};
 
-// Redirect Login ফলাফল পরীক্ষা
-auth.getRedirectResult().then(result => {
-  redirectHandled = true;
-}).catch(error => {
-  $("loginMessage").textContent =
-    error.code + "\n" + error.message;
-  $("googleLoginBtn").disabled = false;
-});
+  $("loginBox").classList.add("hidden");
+  $("panel").classList.remove("hidden");
+  loadProducts();
+  return true;
+}
 
-// Login অবস্থা পরীক্ষা
+try{
+  if(typeof firebase === "undefined"){
+    throw new Error("Firebase SDK লোড হয়নি।");
+  }
+
+  if(typeof firebaseConfig === "undefined"){
+    throw new Error("firebase-config.js ফাইল পাওয়া যায়নি অথবা config ভুল।");
+  }
+
+  if(!firebase.apps.length){
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  auth = firebase.auth();
+  db = firebase.database();
+
+}catch(error){
+  showError("Firebase Setup Error: " + error.message);
+  $("googleLoginBtn").disabled = true;
+  return;
+}
+
+const provider = new firebase.auth.GoogleAuthProvider();
+provider.setCustomParameters({prompt:"select_account"});
+
 auth.onAuthStateChanged(async user => {
-  if (!user) {
+  if(!user){
     $("loginBox").classList.remove("hidden");
     $("panel").classList.add("hidden");
     $("googleLoginBtn").disabled = false;
     return;
   }
 
-  if ((user.email || "").toLowerCase() !== ADMIN_EMAIL) {
-    $("loginMessage").textContent =
-      "এই Gmail Admin হিসেবে অনুমোদিত নয়।";
+  if((user.email || "").toLowerCase() !== ADMIN_EMAIL){
+    showError("এই Gmail Admin হিসেবে অনুমোদিত নয়।");
     await auth.signOut();
     return;
   }
 
-  $("loginBox").classList.add("hidden");
-  $("panel").classList.remove("hidden");
-  loadProducts();
+  showPanel(user);
+});
+
+// Google Login: প্রথমে Popup, প্রয়োজন হলে Redirect
+$("googleLoginBtn").addEventListener("click", async function(){
+  this.disabled = true;
+  showError("Google Login চালু হচ্ছে...");
+
+  try{
+    await auth.signInWithPopup(provider);
+    showError("");
+  }catch(error){
+
+    if(error.code === "auth/popup-blocked" ||
+       error.code === "auth/operation-not-supported-in-this-environment"){
+
+      try{
+        showError("Redirect Login চালু হচ্ছে...");
+        await auth.signInWithRedirect(provider);
+        return;
+      }catch(redirectError){
+        showError(redirectError.code + "\n" + redirectError.message);
+      }
+
+    }else{
+      showError(error.code + "\n" + error.message);
+    }
+  }
+
+  this.disabled = false;
+});
+
+// Redirect result
+auth.getRedirectResult().catch(error => {
+  showError(error.code + "\n" + error.message);
+  $("googleLoginBtn").disabled = false;
 });
 
 // Logout
-$("logoutBtn").onclick = () => auth.signOut();
+$("logoutBtn").addEventListener("click", async function(){
+  try{
+    await auth.signOut();
+  }catch(error){
+    alert(error.message);
+  }
+});
 
-// Form reset
-function resetForm() {
+// Reset form
+function resetForm(){
   editingId = null;
   ["name","price","category","image","url"].forEach(id => {
     $(id).value = "";
@@ -129,64 +184,74 @@ function resetForm() {
   $("saveBtn").textContent = "পণ্য সংরক্ষণ";
   $("message").textContent = "";
 }
-$("resetBtn").onclick = resetForm;
+$("resetBtn").addEventListener("click",resetForm);
 
 // Save product
-$("saveBtn").onclick = async () => {
+$("saveBtn").addEventListener("click",async function(){
   const user = auth.currentUser;
-  if (!user || user.email.toLowerCase() !== ADMIN_EMAIL) {
+
+  if(!user || (user.email || "").toLowerCase() !== ADMIN_EMAIL){
     alert("Admin Login প্রয়োজন।");
     return;
   }
 
   const data = {
-    name: $("name").value.trim(),
-    price: $("price").value.trim(),
-    category: $("category").value.trim(),
-    image: $("image").value.trim(),
-    url: $("url").value.trim()
+    name:$("name").value.trim(),
+    price:$("price").value.trim(),
+    category:$("category").value.trim(),
+    image:$("image").value.trim(),
+    url:$("url").value.trim()
   };
 
-  if (!data.name || !data.price || !data.image || !data.url) {
+  if(!data.name || !data.price || !data.image || !data.url){
     $("message").textContent = "সব প্রয়োজনীয় তথ্য পূরণ করুন।";
     return;
   }
 
-  if (!/^https:\/\//i.test(data.image) ||
-      !/^https:\/\//i.test(data.url)) {
-    $("message").textContent =
-      "ছবি ও Affiliate Link HTTPS হতে হবে।";
+  if(!/^https:\/\//i.test(data.image) ||
+     !/^https:\/\//i.test(data.url)){
+    $("message").textContent = "ছবি ও Affiliate Link HTTPS হতে হবে।";
     return;
   }
 
-  try {
-    if (editingId) {
+  this.disabled = true;
+
+  try{
+    if(editingId){
       await db.ref("products/" + editingId).update(data);
-    } else {
+    }else{
       await db.ref("products").push(data);
     }
+
     resetForm();
     $("message").textContent = "পণ্য সফলভাবে সংরক্ষণ হয়েছে!";
-  } catch (error) {
+
+  }catch(error){
     $("message").textContent = error.code + ": " + error.message;
+  }finally{
+    this.disabled = false;
   }
-};
+});
 
 // Load products
-function loadProducts() {
-  db.ref("products").off();
+function loadProducts(){
+  const ref = db.ref("products");
 
-  db.ref("products").on("value", snapshot => {
+  if(productsListener){
+    ref.off("value",productsListener);
+  }
+
+  productsListener = snapshot => {
     const list = $("productList");
     list.innerHTML = "";
 
-    if (!snapshot.exists()) {
+    if(!snapshot.exists()){
       list.textContent = "এখনো কোনো পণ্য যোগ করা হয়নি।";
       return;
     }
 
     snapshot.forEach(child => {
-      const p = child.val();
+      const p = child.val() || {};
       const item = document.createElement("div");
       item.className = "product";
 
@@ -218,23 +283,27 @@ function loadProducts() {
       del.className = "delete";
 
       del.onclick = async () => {
-        if (confirm("এই পণ্য মুছে ফেলবেন?")) {
-          try {
+        if(confirm("এই পণ্য মুছে ফেলবেন?")){
+          try{
             await db.ref("products/" + child.key).remove();
-          } catch (error) {
-            alert(error.message);
+          }catch(error){
+            alert(error.code + ": " + error.message);
           }
         }
       };
 
       item.append(img,title,price,edit,del);
-      list.append(item);
+      list.appendChild(item);
     });
-  }, error => {
+  };
+
+  ref.on("value",productsListener,error => {
     $("productList").textContent =
-      "Database Error: " + error.message;
+      "Database Error: " + error.code + "\n" + error.message;
   });
 }
+
+})();
 </script>
 </body>
 </html>
