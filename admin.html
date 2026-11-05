@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orange Shop Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#222}
+header{background:#f85606;color:white;padding:18px}
+main{max-width:850px;margin:auto;padding:15px}
+.box{background:white;padding:18px;border-radius:12px;margin:15px 0;box-shadow:0 2px 8px #0001}
+input{width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:7px;font-size:15px}
+button{border:0;padding:12px 17px;border-radius:7px;background:#f85606;color:white;cursor:pointer;margin:4px}
+.delete{background:#d62828}
+.secondary{background:#555}
+.hidden{display:none}
+.product{background:#fff3eb;padding:13px;margin:12px 0;border-radius:9px}
+.product img{width:75px;height:75px;object-fit:contain;float:right}
+small{color:#666}
+</style>
+</head>
+<body>
+<header><h2>🛍️ Orange Shop Admin</h2></header>
+<main>
+<section id="loginBox" class="box">
+<h3>Admin Login</h3>
+<input id="email" type="email" placeholder="Admin Email">
+<input id="password" type="password" placeholder="Password">
+<button id="loginBtn">Login</button>
+<p id="loginMessage"></p>
+</section>
+
+<section id="panel" class="hidden">
+<div class="box">
+<h3>পণ্য যোগ করুন / Edit করুন</h3>
+<input id="name" placeholder="পণ্যের নাম">
+<input id="price" type="number" placeholder="দাম (৳)">
+<input id="category" placeholder="ক্যাটাগরি">
+<input id="image" type="url" placeholder="ছবির URL">
+<input id="url" type="url" placeholder="Daraz Affiliate Link">
+<button id="saveBtn">পণ্য সংরক্ষণ</button>
+<button class="secondary" id="resetBtn">নতুন পণ্য</button>
+<p id="message"></p>
+</div>
+<div class="box">
+<h3>আপনার সব পণ্য</h3>
+<div id="productList">লোড হচ্ছে...</div>
+</div>
+<button class="secondary" id="logoutBtn">Logout</button>
+</section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.database();
+const $=id=>document.getElementById(id);
+let editingId=null;
+
+auth.onAuthStateChanged(user=>{
+  const allowed=user && user.email==="sowkat420@gmail.com";
+  $("loginBox").classList.toggle("hidden",!!allowed);
+  $("panel").classList.toggle("hidden",!allowed);
+  if(user && !allowed){
+    auth.signOut();
+    $("loginMessage").textContent="এই অ্যাকাউন্ট Admin নয়।";
+  }
+  if(allowed)loadProducts();
+});
+
+$("loginBtn").onclick=async()=>{
+  try{
+    await auth.signInWithEmailAndPassword(
+      $("email").value.trim(),
+      $("password").value
+    );
+    $("loginMessage").textContent="লগইন সফল";
+  }catch(e){
+    $("loginMessage").textContent="লগইন হয়নি: "+e.message;
+  }
+};
+
+$("logoutBtn").onclick=()=>auth.signOut();
+
+function resetForm(){
+  editingId=null;
+  ["name","price","category","image","url"].forEach(id=>$(id).value="");
+  $("saveBtn").textContent="পণ্য সংরক্ষণ";
+}
+$("resetBtn").onclick=resetForm;
+
+$("saveBtn").onclick=async()=>{
+  const data={
+    name:$("name").value.trim(),
+    price:$("price").value.trim(),
+    category:$("category").value.trim(),
+    image:$("image").value.trim(),
+    url:$("url").value.trim()
+  };
+  if(!data.name||!data.price||!data.image||!data.url){
+    $("message").textContent="সব প্রয়োজনীয় তথ্য পূরণ করুন।";
+    return;
+  }
+  if(!/^https:\/\//i.test(data.image)||!/^https:\/\//i.test(data.url)){
+    $("message").textContent="ছবি ও Affiliate Link HTTPS হতে হবে।";
+    return;
+  }
+  try{
+    if(editingId){
+      await db.ref("products/"+editingId).update(data);
+    }else{
+      await db.ref("products").push(data);
+    }
+    resetForm();
+    $("message").textContent="পণ্য সফলভাবে সংরক্ষণ হয়েছে!";
+  }catch(e){
+    $("message").textContent="সমস্যা: "+e.message;
+  }
+};
+
+function loadProducts(){
+  db.ref("products").off();
+  db.ref("products").on("value",snapshot=>{
+    const list=$("productList");
+    list.innerHTML="";
+    if(!snapshot.exists()){
+      list.textContent="এখনো কোনো পণ্য যোগ করা হয়নি।";
+      return;
+    }
+    snapshot.forEach(child=>{
+      const p=child.val();
+      const item=document.createElement("div");
+      item.className="product";
+      const img=document.createElement("img");
+      img.src=p.image||"";
+      img.alt=p.name||"";
+      const title=document.createElement("strong");
+      title.textContent=p.name||"পণ্য";
+      const price=document.createElement("p");
+      price.textContent="৳ "+(p.price||"");
+      const edit=document.createElement("button");
+      edit.textContent="Edit";
+      edit.onclick=()=>{
+        editingId=child.key;
+        $("name").value=p.name||"";
+        $("price").value=p.price||"";
+        $("category").value=p.category||"";
+        $("image").value=p.image||"";
+        $("url").value=p.url||"";
+        $("saveBtn").textContent="পরিবর্তন সংরক্ষণ";
+        window.scrollTo({top:0,behavior:"smooth"});
+      };
+      const del=document.createElement("button");
+      del.textContent="Delete";
+      del.className="delete";
+      del.onclick=async()=>{
+        if(confirm("এই পণ্য মুছে ফেলবেন?")){
+          try{await db.ref("products/"+child.key).remove();}
+          catch(e){alert(e.message);}
+        }
+      };
+      item.append(img,title,price,edit,del);
+      list.append(item);
+    });
+  });
+}
+</script>
+</body>
+</html>
