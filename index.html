@@ -1,100 +1,199 @@
-<!DOCTYPE html>  <html lang="bn">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1">  
-<title>Orange Shop</title>  
-<style>  
-*{box-sizing:border-box}  
-body{margin:0;background:#f6f6f6;font-family:Arial,sans-serif}  
-header{background:#f85606;color:white;padding:18px;display:flex;justify-content:space-between}  
-header h2{margin:0}  
-.hero{text-align:center;background:#fff0e6;padding:30px 12px}  
-.hero h1{color:#e94e00}  
-.search{width:90%;max-width:500px;padding:13px;border:1px solid #ddd;border-radius:8px}  
-.filters{text-align:center;padding:15px}  
-.filters button{border:0;padding:9px 13px;margin:4px;border-radius:20px;background:#ffe0cf}  
-.filters .active{background:#f85606;color:white}  
-.grid{padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:13px}  
-.card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px #0001}  
-.card img{width:100%;height:165px;object-fit:contain}  
-.info{padding:11px}  
-.info h3{font-size:15px;min-height:35px}  
-.price{font-size:19px;font-weight:bold;color:#f85606}  
-.buy{display:block;text-align:center;background:#f85606;color:white;padding:11px;text-decoration:none;border-radius:6px;font-weight:bold}  
-footer{background:#222;color:white;text-align:center;padding:20px}  
-</style>  
-</head>  
-<body>  
-<header><h2>🛍️ Orange Shop</h2><b>Best Deals</b></header>  
-<section class="hero">  
-<h1>সেরা পণ্য, সেরা দামে!</h1>  
-<p>আপনার পছন্দের পণ্য কিনুন সহজেই</p>  
-<input id="search" class="search" placeholder="পণ্য খুঁজুন...">  
-</section>  
-<div class="filters" id="categories"></div>  
-<main class="grid" id="products">পণ্য লোড হচ্ছে...</main>  
-<footer>© 2026 Orange Shop</footer>  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>  <script src="firebase-config.js"></script>  <script>  
-firebase.initializeApp(firebaseConfig);  
-const db=firebase.database();  
-let products=[];  
-let category="সব";  
-const area=document.getElementById("products");  
-  
-db.ref("products").on("value",snap=>{  
-  products=[];  
-  snap.forEach(child=>products.push({id:child.key,...child.val()}));  
-  showCategories();  
-  render();  
-},()=>{  
-  area.textContent="পণ্য লোড করা যাচ্ছে না। পরে চেষ্টা করুন।";  
-});  
-  
-function showCategories(){  
-  const cats=["সব",...new Set(products.map(p=>p.category).filter(Boolean))];  
-  const box=document.getElementById("categories");  
-  box.innerHTML="";  
-  cats.forEach(c=>{  
-    const b=document.createElement("button");  
-    b.textContent=c==="সব"?"সব পণ্য":c;  
-    if(c===category)b.className="active";  
-    b.onclick=()=>{category=c;showCategories();render();};  
-    box.append(b);  
-  });  
-}  
-  
-function render(){  
-  const q=document.getElementById("search").value.toLowerCase();  
-  area.innerHTML="";  
-  const found=products.filter(p=>  
-    (category==="সব"||p.category===category)&&  
-    (p.name||"").toLowerCase().includes(q)  
-  );  
-  if(!found.length){area.textContent="কোনো পণ্য পাওয়া যায়নি।";return;}  
-  found.forEach(p=>{  
-    const card=document.createElement("div");  
-    card.className="card";  
-    const img=document.createElement("img");  
-    img.src=p.image||"";  
-    img.alt=p.name||"";  
-    img.loading="lazy";  
-    const info=document.createElement("div");  
-    info.className="info";  
-    const title=document.createElement("h3");  
-    title.textContent=p.name||"পণ্য";  
-    const price=document.createElement("p");  
-    price.className="price";  
-    price.textContent="৳ "+p.price;  
-    const link=document.createElement("a");  
-    link.className="buy";  
-    link.textContent="Shop Now";  
-    link.href=p.url||"#";  
-    link.target="_blank";  
-    link.rel="nofollow sponsored noopener";  
-    info.append(title,price,link);  
-    card.append(img,info);  
-    area.append(card);  
-  });  
-}  
-document.getElementById("search").addEventListener("input",render);  
-</script>  </body>  
-</html>  
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orange Shop</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f6f6f6;font-family:Arial,sans-serif}
+header{background:#f85606;color:white;padding:18px;display:flex;justify-content:space-between}
+header h2{margin:0}
+
+.hero{text-align:center;background:#fff0e6;padding:30px 12px}
+.hero h1{color:#e94e00}
+
+.search{width:90%;max-width:500px;padding:13px;border:1px solid #ddd;border-radius:8px}
+
+.filters{text-align:center;padding:15px}
+.filters button{border:0;padding:9px 13px;margin:4px;border-radius:20px;background:#ffe0cf}
+.filters .active{background:#f85606;color:white}
+
+.grid{padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:13px}
+
+.card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px #0001}
+.card img{width:100%;height:165px;object-fit:contain}
+.info{padding:11px}
+.info h3{font-size:15px;min-height:35px}
+.price{font-size:19px;font-weight:bold;color:#f85606}
+.buy{display:block;text-align:center;background:#f85606;color:white;padding:11px;text-decoration:none;border-radius:6px;font-weight:bold}
+
+.ad-box{text-align:center;padding:15px 5px;overflow:hidden}
+.ad-label{font-size:11px;color:#999;margin-bottom:6px}
+.ad-728{min-height:110px}
+.ad-300{min-height:270px}
+
+footer{background:#222;color:white;text-align:center;padding:20px}
+
+@media(max-width:767px){
+.ad-728{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>🛍️ Orange Shop</h2>
+<b>Best Deals</b>
+</header>
+
+<!-- Ad 1: 728x90 -->
+<div class="ad-box ad-728">
+<div class="ad-label">Advertisement</div>
+<script>
+atOptions = {
+'key' : 'af57b705515f7f7751d0f313b40a3539',
+'format' : 'iframe',
+'height' : 90,
+'width' : 728,
+'params' : {}
+};
+</script>
+<script src="https://bauval.org/22/af57b705515f7f7751d0f313b40a3539"></script>
+</div>
+
+<section class="hero">
+<h1>সেরা পণ্য, সেরা দামে!</h1>
+<p>আপনার পছন্দের পণ্য কিনুন সহজেই</p>
+<input id="search" class="search" placeholder="পণ্য খুঁজুন...">
+</section>
+
+<!-- Ad 2: 300x250 -->
+<div class="ad-box ad-300">
+<div class="ad-label">Advertisement</div>
+<script>
+atOptions = {
+'key' : '63ceac39ba2623f6a409f8023178ba20',
+'format' : 'iframe',
+'height' : 250,
+'width' : 300,
+'params' : {}
+};
+</script>
+<script src="https://bauval.org/22/63ceac39ba2623f6a409f8023178ba20"></script>
+</div>
+
+<div class="filters" id="categories"></div>
+
+<main class="grid" id="products">পণ্য লোড হচ্ছে...</main>
+
+<!-- Ad 3: Container Ad -->
+<div class="ad-box">
+<div class="ad-label">Advertisement</div>
+<script async="async" data-cfasync="false" src="https://bauval.org/21/ee6d63b872b22659e012b5a0fa3987c8"></script>
+<div id="container-ee6d63b872b22659e012b5a0fa3987c8"></div>
+</div>
+
+<footer>© 2026 Orange Shop</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+
+const db=firebase.database();
+let products=[];
+let category="সব";
+
+const area=document.getElementById("products");
+
+db.ref("products").on("value",snap=>{
+  products=[];
+  snap.forEach(child=>{
+    products.push({id:child.key,...child.val()});
+  });
+  showCategories();
+  render();
+},()=>{
+  area.textContent="পণ্য লোড করা যাচ্ছে না। পরে চেষ্টা করুন।";
+});
+
+function showCategories(){
+  const cats=["সব",...new Set(products.map(p=>p.category).filter(Boolean))];
+  const box=document.getElementById("categories");
+
+  box.innerHTML="";
+
+  cats.forEach(c=>{
+    const b=document.createElement("button");
+    b.textContent=c==="সব"?"সব পণ্য":c;
+
+    if(c===category)b.className="active";
+
+    b.onclick=()=>{
+      category=c;
+      showCategories();
+      render();
+    };
+
+    box.append(b);
+  });
+}
+
+function render(){
+  const q=document.getElementById("search").value.toLowerCase();
+
+  area.innerHTML="";
+
+  const found=products.filter(p=>
+    (category==="সব"||p.category===category)&&
+    (p.name||"").toLowerCase().includes(q)
+  );
+
+  if(!found.length){
+    area.textContent="কোনো পণ্য পাওয়া যায়নি।";
+    return;
+  }
+
+  found.forEach(p=>{
+    const card=document.createElement("div");
+    card.className="card";
+
+    const img=document.createElement("img");
+    img.src=p.image||"";
+    img.alt=p.name||"";
+    img.loading="lazy";
+
+    const info=document.createElement("div");
+    info.className="info";
+
+    const title=document.createElement("h3");
+    title.textContent=p.name||"পণ্য";
+
+    const price=document.createElement("p");
+    price.className="price";
+    price.textContent="৳ "+p.price;
+
+    const link=document.createElement("a");
+    link.className="buy";
+    link.textContent="Shop Now";
+    link.href=p.url||"#";
+    link.target="_blank";
+    link.rel="nofollow sponsored noopener";
+
+    info.append(title,price,link);
+    card.append(img,info);
+    area.append(card);
+  });
+}
+
+document.getElementById("search").addEventListener("input",render);
+</script>
+
+</body>
+</html>
