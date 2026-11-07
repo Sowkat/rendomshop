@@ -22,9 +22,9 @@ header{background:#f57224;color:white;padding:16px}
 .cat.active{background:#f57224;color:white}
 .products{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .product{background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px #ddd}
-.product img{width:100%;height:190px;object-fit:contain;background:white}
+.product img{width:100%;height:190px;object-fit:contain;background:white;cursor:pointer}
 .info{padding:12px}
-.name{font-size:15px;min-height:38px}
+.name{font-size:15px;min-height:38px;cursor:pointer}
 .price{color:#f57224;font-weight:bold;font-size:19px;margin:10px 0}
 .btn{border:0;border-radius:5px;padding:10px 12px;cursor:pointer;font-weight:bold}
 .buy{background:#f57224;color:white;width:100%}
@@ -114,69 +114,98 @@ atOptions = {
 
 <script>
 firebase.initializeApp(window.firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
-let allProducts = {};
-let currentCategory = "all";
+let allProducts={};
+let currentCategory="all";
+let reviewListener=null;
 
-const productsBox = document.getElementById("products");
-const categoriesBox = document.getElementById("categories");
-const detailBox = document.getElementById("detail");
+const productsBox=document.getElementById("products");
+const categoriesBox=document.getElementById("categories");
+const detailBox=document.getElementById("detail");
 
 function safe(value){
- return String(value ?? "").replace(/[&<>"']/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ return String(value??"").replace(/[&<>"']/g,c=>({
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
  }[c]));
 }
 
 function getImage(p){
- return p.image || p.imageUrl || p.img || "https://placehold.co/400x300?text=Rendom+Shop";
+ return p.image||p.imageUrl||p.img||"https://placehold.co/400x300?text=Rendom+Shop";
 }
 
 function getName(p){
- return p.name || p.title || "প্রোডাক্ট";
+ return p.name||p.title||"প্রোডাক্ট";
 }
 
 function getPrice(p){
- return p.price ?? "দাম জানতে যোগাযোগ করুন";
+ return p.price??"দাম জানতে যোগাযোগ করুন";
 }
 
+// AFFILIATE LINK
+function goToAffiliate(id){
+ const p=allProducts[id];
+ const link=p&&(p.url||p.affiliateUrl||p.affiliateLink);
+
+ if(link && /^https?:\/\//i.test(link)){
+  window.open(link,"_blank","noopener,noreferrer");
+ }else{
+  alert("এই প্রোডাক্টের সঠিক Affiliate Link পাওয়া যায়নি।");
+ }
+}
+
+// CATEGORIES
 function renderCategories(){
- const cats = new Set(["সব পণ্য"]);
+ const cats=new Set(["সব পণ্য"]);
+
  Object.values(allProducts).forEach(p=>{
-  if(p.category) cats.add(p.category);
+  if(p&&p.category)cats.add(p.category);
  });
- categoriesBox.innerHTML = "";
+
+ categoriesBox.innerHTML="";
+
  [...cats].forEach((cat,i)=>{
   const b=document.createElement("button");
   b.className="cat"+(i===0?" active":"");
   b.textContent=cat;
   b.dataset.cat=i===0?"all":cat;
+
   b.onclick=()=>{
    currentCategory=b.dataset.cat;
    document.querySelectorAll(".cat").forEach(x=>x.classList.remove("active"));
    b.classList.add("active");
    renderProducts();
   };
+
   categoriesBox.appendChild(b);
  });
 }
 
+// PRODUCT LIST
 function renderProducts(){
- const search=document.getElementById("search").value.toLowerCase();
+ const search=document.getElementById("search").value.toLowerCase().trim();
+
  productsBox.innerHTML="";
  let count=0;
 
  Object.entries(allProducts).forEach(([id,p])=>{
-  if(!p || p.active===false) return;
+  if(!p||p.active===false)return;
+
   const name=getName(p);
-  const category=p.category || "";
-  if(currentCategory!=="all" && category!==currentCategory) return;
-  if(!name.toLowerCase().includes(search)) return;
+  const category=p.category||"";
+
+  if(currentCategory!=="all"&&category!==currentCategory)return;
+  if(!name.toLowerCase().includes(search))return;
 
   count++;
+
   const card=document.createElement("div");
   card.className="product";
+
   card.innerHTML=`
    <img src="${safe(getImage(p))}" alt="${safe(name)}" loading="lazy">
    <div class="info">
@@ -186,39 +215,63 @@ function renderProducts(){
     <button class="btn share">Facebook Share</button>
    </div>`;
 
-  card.querySelector(".buy").onclick=()=>openProduct(id);
+  // ছবি বা নাম চাপলে Details
+  card.querySelector("img").onclick=()=>openProduct(id);
+  card.querySelector(".name").onclick=()=>openProduct(id);
+
+  // Shop Now চাপলে সরাসরি Affiliate Link
+  card.querySelector(".buy").onclick=()=>goToAffiliate(id);
+
   card.querySelector(".share").onclick=()=>shareProduct(id);
+
   productsBox.appendChild(card);
  });
 
- if(!count) productsBox.innerHTML="<p>কোনো পণ্য পাওয়া যায়নি।</p>";
+ if(!count){
+  productsBox.innerHTML="<p>কোনো পণ্য পাওয়া যায়নি।</p>";
+ }
 }
 
 document.getElementById("search").addEventListener("input",renderProducts);
 
+// PRODUCT DETAILS
 function openProduct(id){
  const p=allProducts[id];
- if(!p) return;
+ if(!p)return;
+
  history.pushState({product:id},"","?product="+encodeURIComponent(id));
  showDetail(id);
 }
 
 function showDetail(id){
  const p=allProducts[id];
- if(!p) return;
+ if(!p)return;
+
  detailBox.classList.remove("hidden");
+
  document.getElementById("detailContent").innerHTML=`
   <h2>${safe(getName(p))}</h2>
   <img src="${safe(getImage(p))}" alt="${safe(getName(p))}">
   <h2 style="color:#f57224">৳ ${safe(getPrice(p))}</h2>
-  <p>${safe(p.description || "বিস্তারিত জানতে যোগাযোগ করুন।")}</p>
-  <button class="btn share" onclick="shareProduct('${safe(id)}')">Facebook-এ শেয়ার করুন</button>
+  <p>${safe(p.description||"বিস্তারিত জানতে যোগাযোগ করুন।")}</p>
+
+  <button class="btn buy" id="detailBuy">
+   Shop Now
+  </button>
+
+  <button class="btn share" id="detailShare">
+   Facebook-এ শেয়ার করুন
+  </button>
+
   <hr>
   <h3>কাস্টমার রিভিউ</h3>
   <div id="reviews">রিভিউ লোড হচ্ছে...</div>
+
   <h3>আপনার রিভিউ লিখুন</h3>
+
   <form id="reviewForm">
    <input id="reviewName" maxlength="50" placeholder="আপনার নাম" required>
+
    <select id="reviewRating" required>
     <option value="">রেটিং দিন</option>
     <option value="5">⭐⭐⭐⭐⭐ - ৫</option>
@@ -227,48 +280,85 @@ function showDetail(id){
     <option value="2">⭐⭐ - ২</option>
     <option value="1">⭐ - ১</option>
    </select>
+
    <textarea id="reviewComment" maxlength="1000" minlength="5" placeholder="আপনার অভিজ্ঞতা লিখুন" required></textarea>
+
    <button class="btn submit" type="submit">রিভিউ জমা দিন</button>
   </form>
+
   <p id="reviewMessage"></p>
  `;
+
+ document.getElementById("detailBuy").onclick=()=>goToAffiliate(id);
+ document.getElementById("detailShare").onclick=()=>shareProduct(id);
+
  loadReviews(id);
+
  document.getElementById("reviewForm").onsubmit=e=>submitReview(e,id);
+
  detailBox.scrollIntoView({behavior:"smooth"});
 }
 
 function closeDetail(){
  detailBox.classList.add("hidden");
  history.pushState({},"",location.pathname);
+
+ if(reviewListener){
+  reviewListener.ref.off("value",reviewListener.callback);
+  reviewListener=null;
+ }
 }
 
+// APPROVED REVIEWS
 function loadReviews(id){
- db.ref("publicReviews/"+id).on("value",snap=>{
+ if(reviewListener){
+  reviewListener.ref.off("value",reviewListener.callback);
+  reviewListener=null;
+ }
+
+ const ref=db.ref("publicReviews/"+id);
+
+ const callback=snap=>{
   const box=document.getElementById("reviews");
-  if(!box) return;
+  if(!box)return;
+
   box.innerHTML="";
+
   if(!snap.exists()){
    box.innerHTML="<p>এখনো কোনো অনুমোদিত রিভিউ নেই।</p>";
    return;
   }
+
   snap.forEach(child=>{
    const r=child.val();
+
    const div=document.createElement("div");
    div.className="review";
-   div.innerHTML=`<b>${safe(r.name)}</b> · ⭐ ${safe(r.rating)}<p>${safe(r.comment)}</p>`;
+
+   div.innerHTML=`
+    <b>${safe(r.name)}</b>
+    · ⭐ ${safe(r.rating)}
+    <p>${safe(r.comment)}</p>
+   `;
+
    box.appendChild(div);
   });
- });
+ };
+
+ ref.on("value",callback);
+ reviewListener={ref,callback};
 }
 
+// SUBMIT REVIEW
 function submitReview(e,id){
  e.preventDefault();
+
  const name=document.getElementById("reviewName").value.trim();
  const rating=Number(document.getElementById("reviewRating").value);
  const comment=document.getElementById("reviewComment").value.trim();
  const msg=document.getElementById("reviewMessage");
 
- if(name.length<2 || comment.length<5 || rating<1 || rating>5){
+ if(name.length<2||comment.length<5||rating<1||rating>5){
   msg.textContent="সঠিক তথ্য দিন।";
   return;
  }
@@ -292,25 +382,45 @@ function submitReview(e,id){
  });
 }
 
+// FACEBOOK SHARE
 function shareProduct(id){
  const shareUrl=location.origin+location.pathname+"?product="+encodeURIComponent(id);
+
  const url="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(shareUrl);
+
  window.open(url,"_blank","width=650,height=500");
 }
 
+// LOAD PRODUCTS
 db.ref("products").on("value",snap=>{
- allProducts=snap.val() || {};
+ allProducts=snap.val()||{};
+
  renderCategories();
  renderProducts();
 
  const id=new URLSearchParams(location.search).get("product");
- if(id && allProducts[id]) showDetail(id);
+
+ if(id&&allProducts[id]){
+  showDetail(id);
+ }else if(id){
+  detailBox.classList.add("hidden");
+ }
 });
 
+// BROWSER BACK BUTTON
 window.addEventListener("popstate",()=>{
  const id=new URLSearchParams(location.search).get("product");
- if(id && allProducts[id]) showDetail(id);
- else detailBox.classList.add("hidden");
+
+ if(id&&allProducts[id]){
+  showDetail(id);
+ }else{
+  detailBox.classList.add("hidden");
+
+  if(reviewListener){
+   reviewListener.ref.off("value",reviewListener.callback);
+   reviewListener=null;
+  }
+ }
 });
 </script>
 
