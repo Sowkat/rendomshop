@@ -5,44 +5,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orange Shop</title>
+<meta name="description" content="Orange Shop - সেরা পণ্য, সেরা দামে!">
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f6f6f6;font-family:Arial,sans-serif}
-header{background:#f85606;color:white;padding:18px;display:flex;justify-content:space-between}
-header h2{margin:0}
-
+body{margin:0;background:#f6f6f6;font-family:Arial,sans-serif;color:#222}
+header{background:#f85606;color:white;padding:18px;display:flex;justify-content:space-between;align-items:center}
+header h2{margin:0;font-size:21px}
 .hero{text-align:center;background:#fff0e6;padding:30px 12px}
 .hero h1{color:#e94e00}
-
 .search{width:90%;max-width:500px;padding:13px;border:1px solid #ddd;border-radius:8px}
-
 .filters{text-align:center;padding:15px}
-.filters button{border:0;padding:9px 13px;margin:4px;border-radius:20px;background:#ffe0cf}
+.filters button{border:0;padding:9px 13px;margin:4px;border-radius:20px;background:#ffe0cf;cursor:pointer}
 .filters .active{background:#f85606;color:white}
-
 .grid{padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:13px}
-
 .card{background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px #0001}
-.card img{width:100%;height:165px;object-fit:contain}
+.card img{width:100%;height:165px;object-fit:contain;background:white;cursor:pointer}
 .info{padding:11px}
 .info h3{font-size:15px;min-height:35px}
 .price{font-size:19px;font-weight:bold;color:#f85606}
-.buy{display:block;text-align:center;background:#f85606;color:white;padding:11px;text-decoration:none;border-radius:6px;font-weight:bold}
-
+.buy,.detail-btn{display:block;text-align:center;background:#f85606;color:white;padding:11px;text-decoration:none;border-radius:6px;font-weight:bold;border:0;width:100%;cursor:pointer;margin-top:8px}
+.detail-btn{background:#333}
 .ad-box{text-align:center;padding:15px 5px;overflow:hidden}
 .ad-label{font-size:11px;color:#999;margin-bottom:6px}
 .ad-728{min-height:110px}
 .ad-300{min-height:270px}
+footer{background:#222;color:white;text-align:center;padding:20px;margin-top:25px}
 
-footer{background:#222;color:white;text-align:center;padding:20px}
+/* Product details */
+#detail{display:none;background:white;margin:12px;padding:15px;border-radius:12px;box-shadow:0 2px 10px #0001}
+#detail img{width:100%;max-height:300px;object-fit:contain}
+.detail-title{font-size:22px}
+.detail-price{font-size:25px;color:#f85606;font-weight:bold}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1;min-width:120px;border:0;padding:12px;border-radius:7px;color:white;background:#f85606;font-weight:bold}
+.actions .share{background:#1877f2}
+.actions .back{background:#555}
 
-@media(max-width:767px){
-.ad-728{display:none}
-}
+/* Reviews */
+.review-section{margin-top:22px;border-top:1px solid #eee;padding-top:15px}
+.review-section h3{color:#f85606}
+.review-form input,.review-form textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:7px;font-size:15px}
+.review-form textarea{height:90px;resize:vertical}
+.stars{display:flex;gap:7px;margin:10px 0}
+.stars span{font-size:30px;color:#ccc;cursor:pointer}
+.stars span.active{color:#ffad00}
+.review-submit{background:#f85606;color:white;border:0;padding:12px 20px;border-radius:7px;width:100%;font-weight:bold}
+.review-item{border-bottom:1px solid #eee;padding:12px 0}
+.review-item .star{color:#f5a400;font-size:19px}
+.review-item small{color:#888}
+#message{padding:10px;color:#e94e00}
+.empty{text-align:center;padding:30px;color:#777}
+@media(max-width:767px){.ad-728{display:none}}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -54,12 +70,9 @@ footer{background:#222;color:white;text-align:center;padding:20px}
 <div class="ad-box ad-728">
 <div class="ad-label">Advertisement</div>
 <script>
-atOptions = {
-'key' : 'af57b705515f7f7751d0f313b40a3539',
-'format' : 'iframe',
-'height' : 90,
-'width' : 728,
-'params' : {}
+atOptions={
+'key':'af57b705515f7f7751d0f313b40a3539',
+'format':'iframe','height':90,'width':728,'params':{}
 };
 </script>
 <script src="https://bauval.org/22/af57b705515f7f7751d0f313b40a3539"></script>
@@ -75,12 +88,9 @@ atOptions = {
 <div class="ad-box ad-300">
 <div class="ad-label">Advertisement</div>
 <script>
-atOptions = {
-'key' : '63ceac39ba2623f6a409f8023178ba20',
-'format' : 'iframe',
-'height' : 250,
-'width' : 300,
-'params' : {}
+atOptions={
+'key':'63ceac39ba2623f6a409f8023178ba20',
+'format':'iframe','height':250,'width':300,'params':{}
 };
 </script>
 <script src="https://bauval.org/22/63ceac39ba2623f6a409f8023178ba20"></script>
@@ -88,16 +98,23 @@ atOptions = {
 
 <div class="filters" id="categories"></div>
 
+<!-- Product detail -->
+<section id="detail">
+<button class="detail-btn" onclick="closeProduct()">← সব পণ্যে ফিরে যান</button>
+<div id="detailContent"></div>
+</section>
+
 <main class="grid" id="products">পণ্য লোড হচ্ছে...</main>
 
 <!-- Ad 3: Container Ad -->
 <div class="ad-box">
 <div class="ad-label">Advertisement</div>
-<script async="async" data-cfasync="false" src="https://bauval.org/21/ee6d63b872b22659e012b5a0fa3987c8"></script>
+<script async="async" data-cfasync="false"
+src="https://bauval.org/21/ee6d63b872b22659e012b5a0fa3987c8"></script>
 <div id="container-ee6d63b872b22659e012b5a0fa3987c8"></div>
 </div>
 
-<footer>© 2026 Orange Shop</footer>
+<footer>© 2026 Rendom Shop</footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -105,13 +122,27 @@ atOptions = {
 
 <script>
 firebase.initializeApp(firebaseConfig);
-
 const db=firebase.database();
+
 let products=[];
 let category="সব";
+let currentProduct=null;
+let selectedStars=5;
+
+// Cloudflare Worker deploy করার পর এখানে URL বসাবেন
+const SHARE_WORKER_URL="YOUR_CLOUDFLARE_WORKER_URL";
 
 const area=document.getElementById("products");
 
+function safeText(value){
+  return String(value??"");
+}
+
+function formatPrice(price){
+  return "৳ "+safeText(price);
+}
+
+// Load products
 db.ref("products").on("value",snap=>{
   products=[];
   snap.forEach(child=>{
@@ -119,6 +150,9 @@ db.ref("products").on("value",snap=>{
   });
   showCategories();
   render();
+
+  const id=new URLSearchParams(location.search).get("product");
+  if(id) openProduct(id,false);
 },()=>{
   area.textContent="পণ্য লোড করা যাচ্ছে না। পরে চেষ্টা করুন।";
 });
@@ -126,37 +160,32 @@ db.ref("products").on("value",snap=>{
 function showCategories(){
   const cats=["সব",...new Set(products.map(p=>p.category).filter(Boolean))];
   const box=document.getElementById("categories");
-
   box.innerHTML="";
 
   cats.forEach(c=>{
     const b=document.createElement("button");
     b.textContent=c==="সব"?"সব পণ্য":c;
-
     if(c===category)b.className="active";
-
     b.onclick=()=>{
       category=c;
       showCategories();
       render();
     };
-
     box.append(b);
   });
 }
 
 function render(){
   const q=document.getElementById("search").value.toLowerCase();
-
   area.innerHTML="";
 
   const found=products.filter(p=>
     (category==="সব"||p.category===category)&&
-    (p.name||"").toLowerCase().includes(q)
+    safeText(p.name).toLowerCase().includes(q)
   );
 
   if(!found.length){
-    area.textContent="কোনো পণ্য পাওয়া যায়নি।";
+    area.innerHTML='<div class="empty">কোনো পণ্য পাওয়া যায়নি।</div>';
     return;
   }
 
@@ -168,6 +197,7 @@ function render(){
     img.src=p.image||"";
     img.alt=p.name||"";
     img.loading="lazy";
+    img.onclick=()=>openProduct(p.id);
 
     const info=document.createElement("div");
     info.className="info";
@@ -177,7 +207,12 @@ function render(){
 
     const price=document.createElement("p");
     price.className="price";
-    price.textContent="৳ "+p.price;
+    price.textContent=formatPrice(p.price);
+
+    const details=document.createElement("button");
+    details.className="detail-btn";
+    details.textContent="বিস্তারিত ও রিভিউ";
+    details.onclick=()=>openProduct(p.id);
 
     const link=document.createElement("a");
     link.className="buy";
@@ -186,14 +221,227 @@ function render(){
     link.target="_blank";
     link.rel="nofollow sponsored noopener";
 
-    info.append(title,price,link);
+    info.append(title,price,details,link);
     card.append(img,info);
     area.append(card);
   });
 }
 
 document.getElementById("search").addEventListener("input",render);
-</script>
 
+// Product details
+function openProduct(id,updateUrl=true){
+  const p=products.find(x=>x.id===id);
+  if(!p)return;
+
+  currentProduct=p;
+  document.getElementById("detail").style.display="block";
+  area.style.display="none";
+  document.getElementById("categories").style.display="none";
+
+  if(updateUrl){
+    history.pushState({}, "", "?product="+encodeURIComponent(id));
+  }
+
+  const content=document.getElementById("detailContent");
+  content.innerHTML="";
+
+  const img=document.createElement("img");
+  img.src=p.image||"";
+  img.alt=p.name||"";
+
+  const title=document.createElement("h2");
+  title.className="detail-title";
+  title.textContent=p.name||"পণ্য";
+
+  const price=document.createElement("div");
+  price.className="detail-price";
+  price.textContent=formatPrice(p.price);
+
+  const desc=document.createElement("p");
+  desc.textContent=p.description||"এই পণ্যের বিস্তারিত তথ্য জানতে Shop Now বাটনে ক্লিক করুন।";
+
+  const actions=document.createElement("div");
+  actions.className="actions";
+
+  const buy=document.createElement("button");
+  buy.textContent="Shop Now";
+  buy.onclick=()=>{
+    if(p.url)window.open(p.url,"_blank","noopener");
+  };
+
+  const share=document.createElement("button");
+  share.className="share";
+  share.textContent="Facebook Share";
+  share.onclick=()=>shareProduct(p);
+
+  actions.append(buy,share);
+  content.append(img,title,price,desc,actions);
+
+  const reviewSection=document.createElement("div");
+  reviewSection.className="review-section";
+  reviewSection.innerHTML=`
+    <h3>⭐ Customer Reviews</h3>
+    <div id="reviewList">রিভিউ লোড হচ্ছে...</div>
+    <h3>আপনার রিভিউ লিখুন</h3>
+    <div class="review-form">
+      <input id="reviewName" maxlength="50" placeholder="আপনার নাম">
+      <div>আপনার রেটিং:</div>
+      <div class="stars" id="starSelect">
+        ${[1,2,3,4,5].map(n=>`<span data-star="${n}">★</span>`).join("")}
+      </div>
+      <textarea id="reviewComment" maxlength="1000" placeholder="আপনার অভিজ্ঞতা লিখুন..."></textarea>
+      <button class="review-submit" id="submitReview">রিভিউ জমা দিন</button>
+      <div id="message"></div>
+    </div>
+  `;
+  content.append(reviewSection);
+
+  selectedStars=5;
+  updateStars();
+
+  document.querySelectorAll("#starSelect span").forEach(s=>{
+    s.onclick=()=>{
+      selectedStars=Number(s.dataset.star);
+      updateStars();
+    };
+  });
+
+  document.getElementById("submitReview").onclick=submitReview;
+
+  loadReviews(p.id);
+  document.getElementById("detail").scrollIntoView({behavior:"smooth"});
+}
+
+function closeProduct(){
+  currentProduct=null;
+  document.getElementById("detail").style.display="none";
+  area.style.display="grid";
+  document.getElementById("categories").style.display="block";
+  history.pushState({}, "", location.pathname);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function updateStars(){
+  document.querySelectorAll("#starSelect span").forEach(s=>{
+    s.classList.toggle("active",Number(s.dataset.star)<=selectedStars);
+  });
+}
+
+// Approved reviews only
+function loadReviews(productId){
+  const list=document.getElementById("reviewList");
+  db.ref("publicReviews/"+productId).on("value",snap=>{
+    if(!document.getElementById("reviewList"))return;
+    list.innerHTML="";
+
+    if(!snap.exists()){
+      list.textContent="এখনো কোনো অনুমোদিত রিভিউ নেই।";
+      return;
+    }
+
+    const reviews=[];
+    snap.forEach(child=>reviews.push(child.val()));
+
+    reviews.reverse().forEach(r=>{
+      const item=document.createElement("div");
+      item.className="review-item";
+
+      const name=document.createElement("b");
+      name.textContent=r.name||"Customer";
+
+      const stars=document.createElement("div");
+      stars.className="star";
+      stars.textContent="★".repeat(Math.max(0,Math.min(5,Number(r.rating)||0)));
+
+      const comment=document.createElement("p");
+      comment.textContent=r.comment||"";
+
+      const date=document.createElement("small");
+      date.textContent=r.date||"";
+
+      item.append(name,stars,comment,date);
+      list.append(item);
+    });
+  });
+}
+
+// Submit review - pending approval
+function submitReview(){
+  if(!currentProduct)return;
+
+  const name=document.getElementById("reviewName").value.trim();
+  const comment=document.getElementById("reviewComment").value.trim();
+  const message=document.getElementById("message");
+
+  if(name.length<2){
+    message.textContent="সঠিক নাম লিখুন।";
+    return;
+  }
+
+  if(comment.length<5){
+    message.textContent="কমপক্ষে ৫ অক্ষরের রিভিউ লিখুন।";
+    return;
+  }
+
+  if(comment.length>1000){
+    message.textContent="রিভিউ অনেক বড় হয়েছে।";
+    return;
+  }
+
+  const review={
+    name:name,
+    comment:comment,
+    rating:selectedStars,
+    status:"pending",
+    date:new Date().toLocaleDateString("bn-BD"),
+    createdAt:Date.now()
+  };
+
+  const btn=document.getElementById("submitReview");
+  btn.disabled=true;
+  btn.textContent="জমা হচ্ছে...";
+
+  db.ref("reviewSubmissions/"+currentProduct.id).push(review)
+  .then(()=>{
+    message.textContent="ধন্যবাদ! আপনার রিভিউ জমা হয়েছে। অ্যাডমিন অনুমোদনের পর প্রকাশ হবে।";
+    document.getElementById("reviewName").value="";
+    document.getElementById("reviewComment").value="";
+    selectedStars=5;
+    updateStars();
+  })
+  .catch(error=>{
+    message.textContent="রিভিউ জমা হয়নি: "+error.message;
+  })
+  .finally(()=>{
+    btn.disabled=false;
+    btn.textContent="রিভিউ জমা দিন";
+  });
+}
+
+// Facebook share
+function shareProduct(p){
+  if(SHARE_WORKER_URL.includes("YOUR_CLOUDFLARE")){
+    alert("আগে Cloudflare Worker URL বসাতে হবে।");
+    return;
+  }
+
+  const url=SHARE_WORKER_URL.replace(/\/$/,"")+"/p/"+encodeURIComponent(p.id);
+  const fb="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(url);
+  window.open(fb,"_blank","width=650,height=500");
+}
+
+document.getElementById("search").addEventListener("input",render);
+
+window.addEventListener("popstate",()=>{
+  const id=new URLSearchParams(location.search).get("product");
+  if(id)openProduct(id,false);
+  else{
+    document.getElementById("detail").style.display="none";
+    area.style.display="grid";
+    document.getElementById("categories").style.display="block";
+  }
+});
+</script>
 </body>
 </html>
