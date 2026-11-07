@@ -4,42 +4,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Orange Shop Review Admin</title>
+<title>Rendom Shop - Admin Panel</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f5f5f5;font-family:Arial,sans-serif}
-header{background:#f85606;color:white;padding:18px}
-main{max-width:850px;margin:auto;padding:15px}
+body{margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#222}
+header{background:#f57224;color:white;padding:18px}
+header h2{margin:0}
+header p{margin:6px 0 0}
+main{max-width:900px;margin:auto;padding:15px}
 button{border:0;padding:11px 16px;border-radius:6px;cursor:pointer;font-weight:bold}
+button:disabled{opacity:.5;cursor:not-allowed}
 .login{background:#4285f4;color:white}
 .approve{background:#159447;color:white}
 .reject{background:#d93025;color:white}
+.logout{background:#333;color:white}
 .card{background:white;padding:15px;margin:12px 0;border-radius:10px;box-shadow:0 2px 8px #0001}
 .star{color:#f5a400;font-size:20px}
 small{color:#777}
 .hidden{display:none}
+#loginMessage{color:#d93025}
 </style>
 </head>
+
 <body>
+
 <header>
-<h2>🛍️ Orange Shop Admin</h2>
-<p>Customer Review Approval</p>
+<h2>🛍️ Rendom Shop Admin</h2>
+<p>Customer Review Approval Panel</p>
 </header>
 
 <main>
+
 <div id="loginBox" class="card">
 <h3>অ্যাডমিন লগইন</h3>
+<p>অনুমোদিত Gmail দিয়ে লগইন করুন।</p>
 <button class="login" id="loginBtn">Continue with Google</button>
 <p id="loginMessage"></p>
 </div>
 
 <div id="panel" class="hidden">
+
 <div class="card">
 <h3>Pending Reviews</h3>
 <p id="count">লোড হচ্ছে...</p>
-<button id="logoutBtn">Logout</button>
+<button class="logout" id="logoutBtn">Logout</button>
 </div>
+
 <div id="reviews"></div>
+
 </div>
 </main>
 
@@ -49,132 +62,178 @@ small{color:#777}
 <script src="firebase-config.js"></script>
 
 <script>
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(window.firebaseConfig);
 
 const auth=firebase.auth();
 const db=firebase.database();
+
 const ADMIN_EMAIL="sowkat420@gmail.com";
 
 const loginBox=document.getElementById("loginBox");
 const panel=document.getElementById("panel");
 const reviewsBox=document.getElementById("reviews");
+const loginMessage=document.getElementById("loginMessage");
+
+let reviewListener=null;
 
 document.getElementById("loginBtn").onclick=()=>{
-  const provider=new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e=>{
-    document.getElementById("loginMessage").textContent=e.message;
-  });
+ const provider=new firebase.auth.GoogleAuthProvider();
+
+ auth.signInWithPopup(provider).catch(e=>{
+  loginMessage.textContent="লগইন সমস্যা: "+e.message;
+ });
 };
 
 auth.onAuthStateChanged(user=>{
-  if(user && user.email===ADMIN_EMAIL){
-    loginBox.classList.add("hidden");
-    panel.classList.remove("hidden");
-    loadPending();
-  }else{
-    panel.classList.add("hidden");
-    loginBox.classList.remove("hidden");
-    if(user){
-      auth.signOut();
-      document.getElementById("loginMessage").textContent="এই Gmail অনুমোদিত নয়।";
-    }
+
+ if(user && user.email===ADMIN_EMAIL){
+
+  loginBox.classList.add("hidden");
+  panel.classList.remove("hidden");
+
+  loadPending();
+
+ }else{
+
+  if(reviewListener){
+   db.ref("reviewSubmissions").off("value",reviewListener);
+   reviewListener=null;
   }
+
+  panel.classList.add("hidden");
+  loginBox.classList.remove("hidden");
+
+  if(user){
+   loginMessage.textContent="এই Gmail অনুমোদিত নয়।";
+   auth.signOut();
+  }
+ }
 });
 
-document.getElementById("logoutBtn").onclick=()=>auth.signOut();
+document.getElementById("logoutBtn").onclick=()=>{
+ auth.signOut();
+};
 
 function loadPending(){
-  db.ref("reviewSubmissions").on("value",snap=>{
-    reviewsBox.innerHTML="";
-    let total=0;
 
-    snap.forEach(productNode=>{
-      const productId=productNode.key;
+ if(reviewListener){
+  db.ref("reviewSubmissions").off("value",reviewListener);
+ }
 
-      productNode.forEach(reviewNode=>{
-        total++;
-        const reviewId=reviewNode.key;
-        const r=reviewNode.val();
+ reviewListener=snap=>{
 
-        const card=document.createElement("div");
-        card.className="card";
+  reviewsBox.innerHTML="";
+  let total=0;
 
-        const heading=document.createElement("h3");
-        heading.textContent="Product ID: "+productId;
+  snap.forEach(productNode=>{
 
-        const name=document.createElement("p");
-        name.textContent="নাম: "+(r.name||"");
+   const productId=productNode.key;
 
-        const stars=document.createElement("div");
-        stars.className="star";
-        stars.textContent="★".repeat(Number(r.rating)||0);
+   productNode.forEach(reviewNode=>{
 
-        const comment=document.createElement("p");
-        comment.textContent="রিভিউ: "+(r.comment||"");
+    const r=reviewNode.val();
 
-        const date=document.createElement("small");
-        date.textContent=r.date||"";
+    if(!r || r.status!=="pending")return;
 
-        const approve=document.createElement("button");
-        approve.className="approve";
-        approve.textContent="Approve";
+    total++;
 
-        const reject=document.createElement("button");
-        reject.className="reject";
-        reject.textContent="Delete";
-        reject.style.marginLeft="8px";
+    const reviewId=reviewNode.key;
 
-        approve.onclick=()=>approveReview(productId,reviewId,r,approve);
-        reject.onclick=()=>deleteReview(productId,reviewId,reject);
+    const card=document.createElement("div");
+    card.className="card";
 
-        card.append(heading,name,stars,comment,date);
-        card.append(document.createElement("br"));
-        card.append(approve,reject);
-        reviewsBox.append(card);
-      });
-    });
+    const heading=document.createElement("h3");
+    heading.textContent="Product ID: "+productId;
 
-    document.getElementById("count").textContent="Pending: "+total;
-    if(total===0)reviewsBox.textContent="কোনো Pending Review নেই।";
+    const name=document.createElement("p");
+    name.textContent="নাম: "+(r.name||"");
+
+    const stars=document.createElement("div");
+    stars.className="star";
+    stars.textContent="★".repeat(Math.min(5,Math.max(0,Number(r.rating)||0)));
+
+    const comment=document.createElement("p");
+    comment.textContent="রিভিউ: "+(r.comment||"");
+
+    const date=document.createElement("small");
+    date.textContent=r.date||"";
+
+    const approve=document.createElement("button");
+    approve.className="approve";
+    approve.textContent="Approve";
+
+    const reject=document.createElement("button");
+    reject.className="reject";
+    reject.textContent="Delete";
+    reject.style.marginLeft="8px";
+
+    approve.onclick=()=>approveReview(productId,reviewId,r,approve);
+    reject.onclick=()=>deleteReview(productId,reviewId,reject);
+
+    card.append(heading,name,stars,comment,date);
+    card.append(document.createElement("br"));
+    card.append(approve,reject);
+
+    reviewsBox.append(card);
+
+   });
   });
+
+  document.getElementById("count").textContent="Pending: "+total;
+
+  if(total===0){
+   reviewsBox.textContent="কোনো Pending Review নেই।";
+  }
+ };
+
+ db.ref("reviewSubmissions").on("value",reviewListener,error=>{
+  reviewsBox.textContent="রিভিউ লোড হয়নি: "+error.message;
+ });
 }
 
 function approveReview(productId,reviewId,r,btn){
-  if(!confirm("এই রিভিউ প্রকাশ করবেন?"))return;
 
-  btn.disabled=true;
+ if(!confirm("এই রিভিউ প্রকাশ করবেন?"))return;
 
-  const approved={
-    name:r.name,
-    comment:r.comment,
-    rating:r.rating,
-    date:r.date,
-    createdAt:r.createdAt
-  };
+ btn.disabled=true;
 
-  const updates={};
-  updates["publicReviews/"+productId+"/"+reviewId]=approved;
-  updates["reviewSubmissions/"+productId+"/"+reviewId]=null;
+ const approved={
+  name:r.name,
+  comment:r.comment,
+  rating:r.rating,
+  date:r.date,
+  createdAt:r.createdAt
+ };
 
-  db.ref().update(updates).then(()=>{
-    alert("রিভিউ অনুমোদিত হয়েছে।");
-  }).catch(e=>{
-    alert("সমস্যা: "+e.message);
-    btn.disabled=false;
-  });
+ const updates={};
+
+ updates["publicReviews/"+productId+"/"+reviewId]=approved;
+ updates["reviewSubmissions/"+productId+"/"+reviewId]=null;
+
+ db.ref().update(updates)
+ .then(()=>{
+  alert("রিভিউ অনুমোদিত হয়েছে।");
+ })
+ .catch(e=>{
+  alert("সমস্যা: "+e.message);
+  btn.disabled=false;
+ });
 }
 
 function deleteReview(productId,reviewId,btn){
-  if(!confirm("এই রিভিউ মুছে ফেলবেন?"))return;
 
-  btn.disabled=true;
+ if(!confirm("এই রিভিউ মুছে ফেলবেন?"))return;
 
-  db.ref("reviewSubmissions/"+productId+"/"+reviewId).remove()
-  .catch(e=>{
-    alert(e.message);
-    btn.disabled=false;
-  });
+ btn.disabled=true;
+
+ db.ref("reviewSubmissions/"+productId+"/"+reviewId)
+ .remove()
+ .catch(e=>{
+  alert("সমস্যা: "+e.message);
+  btn.disabled=false;
+ });
 }
 </script>
+
 </body>
 </html>
