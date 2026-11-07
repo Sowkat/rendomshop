@@ -1,5 +1,5 @@
 
-const firebaseConfig = {
+window.firebaseConfig = {
   apiKey: "AIzaSyBzYcegkRt5GgNdz3qFiIabZ57slZiBdmg",
   authDomain: "rendom-shop-3e838.firebaseapp.com",
   databaseURL: "https://rendom-shop-3e838-default-rtdb.asia-southeast1.firebasedatabase.app",
