@@ -1,4 +1,3 @@
-
 window.firebaseConfig = {
   apiKey: "AIzaSyBzYcegkRt5GgNdz3qFiIabZ57slZiBdmg",
   authDomain: "rendom-shop-3e838.firebaseapp.com",
