@@ -1,422 +1,54 @@
-
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rendom Shop Admin</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#222}
-header{background:#f57224;color:white;padding:20px}
-header h2{margin:0}
-main{max-width:1000px;margin:auto;padding:15px}
-.card{background:white;padding:17px;margin:14px 0;border-radius:10px;box-shadow:0 2px 8px #0001}
-input,textarea,select{width:100%;padding:12px;margin:7px 0;border:1px solid #ddd;border-radius:6px;font-size:15px}
-button{border:0;padding:11px 15px;border-radius:6px;cursor:pointer;font-weight:bold}
-.login{background:#4285f4;color:white;width:100%}
-.primary{background:#f57224;color:white}
-.approve{background:#159447;color:white}
-.delete{background:#d93025;color:white}
-.edit{background:#1877f2;color:white}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
-.tab{background:#ddd}
-.tab.active{background:#f57224;color:white}
-.hidden{display:none}
-.product{display:flex;gap:13px;align-items:center;flex-wrap:wrap}
-.product img{width:85px;height:85px;object-fit:contain;background:#eee;border-radius:6px}
-.product-info{flex:1;min-width:160px}
-.muted{color:#777}
-.star{color:#f5a400;font-size:20px}
-.small{font-size:13px;color:#777}
+*{box-sizing:border-box}body{margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#222}header{background:#f57224;color:white;padding:20px}header h2{margin:0}main{max-width:1000px;margin:auto;padding:15px}
+.card{background:white;padding:17px;margin:14px 0;border-radius:10px;box-shadow:0 2px 8px #0001}input,textarea,select{width:100%;padding:12px;margin:7px 0;border:1px solid #ddd;border-radius:6px;font-size:15px}button{border:0;padding:11px 15px;border-radius:6px;cursor:pointer;font-weight:bold}.login{background:#4285f4;color:white;width:100%}.primary{background:#f57224;color:white}.approve{background:#159447;color:white}.delete{background:#d93025;color:white}.edit{background:#1877f2;color:white}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.tab{background:#ddd}.tab.active{background:#f57224;color:white}.hidden{display:none}.product{display:flex;gap:13px;align-items:center;flex-wrap:wrap}.product img{width:85px;height:85px;object-fit:contain;background:#eee;border-radius:6px}.product-info{flex:1;min-width:160px}.star{color:#f5a400;font-size:20px}.small{font-size:13px;color:#777}
 </style>
 </head>
 <body>
-
-<header>
-<h2>🛍️ Rendom Shop Admin</h2>
-<p>Product & Customer Review Management</p>
-</header>
-
+<header><h2>🛍️ Rendom Shop Admin</h2><p>Product & Customer Review Management</p></header>
 <main>
-
-<div id="loginBox" class="card">
-<h3>অ্যাডমিন লগইন</h3>
-<p>আপনার অনুমোদিত Gmail দিয়ে লগইন করুন।</p>
-<button class="login" id="loginBtn">Continue with Google</button>
-<p id="loginMessage"></p>
-</div>
-
+<div id="loginBox" class="card"><h3>অ্যাডমিন লগইন</h3><p>আপনার অনুমোদিত Gmail দিয়ে লগইন করুন।</p><button class="login" id="loginBtn">Continue with Google</button><p id="loginMessage"></p></div>
 <div id="dashboard" class="hidden">
-
-<div class="card">
-<h3>স্বাগতম, Admin</h3>
-<p id="adminEmail"></p>
-<button id="logoutBtn">Logout</button>
-</div>
-
-<div class="tabs">
-<button class="tab active" data-tab="productsTab">প্রোডাক্ট ম্যানেজমেন্ট</button>
-<button class="tab" data-tab="reviewsTab">রিভিউ অনুমোদন</button>
-</div>
-
-<!-- PRODUCT MANAGEMENT -->
+<div class="card"><h3>স্বাগতম, Admin</h3><p id="adminEmail"></p><button id="logoutBtn">Logout</button></div>
+<div class="tabs"><button class="tab active" data-tab="productsTab">প্রোডাক্ট ম্যানেজমেন্ট</button><button class="tab" data-tab="reviewsTab">রিভিউ অনুমোদন</button></div>
 <section id="productsTab">
-
-<div class="card">
-<h3 id="formTitle">নতুন প্রোডাক্ট যোগ করুন</h3>
-
-<form id="productForm">
-<input id="pName" placeholder="প্রোডাক্টের নাম" required maxlength="120">
-<input id="pPrice" placeholder="প্রোডাক্টের দাম" required>
-<input id="pCategory" placeholder="ক্যাটাগরি" required>
-<input id="pImage" type="url" placeholder="প্রোডাক্ট ছবির HTTPS URL" required>
-<input id="pUrl" type="url" placeholder="Shop Now / Affiliate URL" required>
-<textarea id="pDescription" placeholder="প্রোডাক্টের বিস্তারিত"></textarea>
-
-<label>
-<input type="checkbox" id="pActive" checked style="width:auto">
- ওয়েবসাইটে প্রোডাক্টটি প্রকাশ করুন
-</label>
-
-<button class="primary" type="submit" id="saveBtn">প্রোডাক্ট যোগ করুন</button>
-<button type="button" id="cancelEdit" class="hidden">Cancel Edit</button>
-</form>
-
-<p id="productMessage"></p>
-</div>
-
-<div class="card">
-<h3>সব প্রোডাক্ট</h3>
-<p id="productCount">লোড হচ্ছে...</p>
-<div id="productList"></div>
-</div>
-
+<div class="card"><h3>📦 Affiliate CSV Import</h3><p>commission_list.csv ফাইল থেকে সব পণ্য Firebase-এ যোগ করুন। একই কোডের পণ্য পুনরায় Import করলে আপডেট হবে, ডুপ্লিকেট হবে না।</p><button class="primary" id="importCSV">CSV থেকে পণ্য Import করুন</button><p id="importMessage"></p></div>
+<div class="card"><h3 id="formTitle">নতুন প্রোডাক্ট যোগ করুন</h3><form id="productForm">
+<input id="pName" placeholder="প্রোডাক্টের নাম" required maxlength="120"><input id="pPrice" placeholder="প্রোডাক্টের দাম" required><input id="pCategory" placeholder="ক্যাটাগরি" required><input id="pImage" type="url" placeholder="প্রোডাক্ট ছবির HTTPS URL" required><input id="pUrl" type="url" placeholder="Shop Now / Affiliate URL" required><input id="pCommission" placeholder="কমিশন (যেমন 2.5%)"><textarea id="pDescription" placeholder="প্রোডাক্টের বিস্তারিত"></textarea>
+<label><input type="checkbox" id="pActive" checked style="width:auto"> ওয়েবসাইটে প্রোডাক্টটি প্রকাশ করুন</label><button class="primary" type="submit" id="saveBtn">প্রোডাক্ট যোগ করুন</button><button type="button" id="cancelEdit" class="hidden">Cancel Edit</button>
+</form><p id="productMessage"></p></div>
+<div class="card"><h3>সব প্রোডাক্ট</h3><p id="productCount">লোড হচ্ছে...</p><div id="productList"></div></div>
 </section>
-
-<!-- REVIEW MANAGEMENT -->
-<section id="reviewsTab" class="hidden">
-
-<div class="card">
-<h3>Pending Reviews</h3>
-<p id="reviewCount">লোড হচ্ছে...</p>
-</div>
-
-<div id="reviewList"></div>
-
-</section>
-</div>
-</main>
-
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
-
+<section id="reviewsTab" class="hidden"><div class="card"><h3>Pending Reviews</h3><p id="reviewCount">লোড হচ্ছে...</p></div><div id="reviewList"></div></section>
+</div></main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script><script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script><script src="firebase-config.js"></script>
 <script>
-firebase.initializeApp(window.firebaseConfig);
-
-const auth=firebase.auth();
-const db=firebase.database();
-const ADMIN_EMAIL="sowkat420@gmail.com";
-
-let editingId=null;
-let productsListener=null;
-let reviewsListener=null;
-
+firebase.initializeApp(window.firebaseConfig);const auth=firebase.auth(),db=firebase.database(),ADMIN_EMAIL="sowkat420@gmail.com";let editingId=null,productsListener=null,reviewsListener=null;
 const $=id=>document.getElementById(id);
-
-function safe(value){
- return String(value??"").replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- }[c]));
-}
-
-function validHttps(value){
- try{
-  return new URL(value).protocol==="https:";
- }catch(e){
-  return false;
- }
-}
-
-// GOOGLE LOGIN
-$("loginBtn").onclick=()=>{
- const provider=new firebase.auth.GoogleAuthProvider();
- auth.signInWithPopup(provider).catch(e=>{
-  $("loginMessage").textContent=e.message;
- });
-};
-
-auth.onAuthStateChanged(user=>{
- if(user && user.email===ADMIN_EMAIL){
-  $("loginBox").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-  $("adminEmail").textContent=user.email;
-  startListeners();
- }else{
-  stopListeners();
-  $("dashboard").classList.add("hidden");
-  $("loginBox").classList.remove("hidden");
-
-  if(user){
-   $("loginMessage").textContent="এই Gmail অনুমোদিত নয়।";
-   auth.signOut();
-  }
- }
-});
-
+function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function validHttps(v){try{return new URL(v).protocol==="https:";}catch(e){return false;}}
+$("loginBtn").onclick=()=>{const provider=new firebase.auth.GoogleAuthProvider();auth.signInWithPopup(provider).catch(e=>$("loginMessage").textContent=e.message);};
+auth.onAuthStateChanged(user=>{if(user&&user.email&&user.email.toLowerCase()===ADMIN_EMAIL.toLowerCase()){ $("loginBox").classList.add("hidden");$("dashboard").classList.remove("hidden");$("adminEmail").textContent=user.email;startListeners();}else{stopListeners();$("dashboard").classList.add("hidden");$("loginBox").classList.remove("hidden");if(user){$("loginMessage").textContent="এই Gmail অনুমোদিত নয়।";auth.signOut();}}});
 $("logoutBtn").onclick=()=>auth.signOut();
-
-function stopListeners(){
- if(productsListener){
-  db.ref("products").off("value",productsListener);
-  productsListener=null;
- }
- if(reviewsListener){
-  db.ref("reviewSubmissions").off("value",reviewsListener);
-  reviewsListener=null;
- }
-}
-
-// TABS
-document.querySelectorAll(".tab").forEach(btn=>{
- btn.onclick=()=>{
-  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-
-  $("productsTab").classList.toggle("hidden",btn.dataset.tab!=="productsTab");
-  $("reviewsTab").classList.toggle("hidden",btn.dataset.tab!=="reviewsTab");
- };
-});
-
-// PRODUCT MANAGEMENT
+function stopListeners(){if(productsListener){db.ref("products").off("value",productsListener);productsListener=null;}if(reviewsListener){db.ref("reviewSubmissions").off("value",reviewsListener);reviewsListener=null;}}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("productsTab").classList.toggle("hidden",b.dataset.tab!=="productsTab");$("reviewsTab").classList.toggle("hidden",b.dataset.tab!=="reviewsTab");});
 function startListeners(){
-
- productsListener=snap=>{
-  const data=snap.val()||{};
-  const list=$("productList");
-  list.innerHTML="";
-  const entries=Object.entries(data);
-
-  $("productCount").textContent="মোট প্রোডাক্ট: "+entries.length;
-
-  if(!entries.length){
-   list.innerHTML="<p>কোনো প্রোডাক্ট নেই।</p>";
-   return;
-  }
-
-  entries.forEach(([id,p])=>{
-   const div=document.createElement("div");
-   div.className="card product";
-
-   const img=document.createElement("img");
-   img.src=p.image||"https://placehold.co/100x100";
-   img.alt=p.name||"Product";
-   img.onerror=()=>img.src="https://placehold.co/100x100";
-
-   const info=document.createElement("div");
-   info.className="product-info";
-   info.innerHTML=`
-    <b>${safe(p.name)}</b>
-    <p>দাম: ৳ ${safe(p.price)}</p>
-    <p>ক্যাটাগরি: ${safe(p.category)}</p>
-    <small>${p.active===false?"Hidden":"Published"}</small>
-   `;
-
-   const edit=document.createElement("button");
-   edit.className="edit";
-   edit.textContent="Edit";
-   edit.onclick=()=>editProduct(id,p);
-
-   const del=document.createElement("button");
-   del.className="delete";
-   del.textContent="Delete";
-   del.onclick=()=>deleteProduct(id);
-
-   div.append(img,info,edit,del);
-   list.appendChild(div);
-  });
- };
-
- db.ref("products").on("value",productsListener);
-
- // PENDING REVIEWS
- reviewsListener=snap=>{
-  const list=$("reviewList");
-  list.innerHTML="";
-  let total=0;
-
-  snap.forEach(productNode=>{
-   const productId=productNode.key;
-
-   productNode.forEach(reviewNode=>{
-    const r=reviewNode.val();
-    if(!r || r.status!=="pending")return;
-
-    total++;
-    const reviewId=reviewNode.key;
-
-    const card=document.createElement("div");
-    card.className="card";
-
-    const heading=document.createElement("h3");
-    heading.textContent="Product ID: "+productId;
-
-    const name=document.createElement("p");
-    name.textContent="নাম: "+(r.name||"");
-
-    const stars=document.createElement("div");
-    stars.className="star";
-    stars.textContent="★".repeat(Math.min(5,Math.max(0,Number(r.rating)||0)));
-
-    const comment=document.createElement("p");
-    comment.textContent="রিভিউ: "+(r.comment||"");
-
-    const date=document.createElement("small");
-    date.textContent=r.date||"";
-
-    const approve=document.createElement("button");
-    approve.className="approve";
-    approve.textContent="Approve";
-    approve.onclick=()=>approveReview(productId,reviewId,r,approve);
-
-    const del=document.createElement("button");
-    del.className="delete";
-    del.textContent="Delete";
-    del.onclick=()=>deleteReview(productId,reviewId,del);
-
-    card.append(heading,name,stars,comment,date,
-      document.createElement("br"),approve,del);
-
-    list.appendChild(card);
-   });
-  });
-
-  $("reviewCount").textContent="Pending: "+total;
-
-  if(total===0){
-   list.innerHTML="<p>কোনো Pending Review নেই।</p>";
-  }
- };
-
- db.ref("reviewSubmissions").on("value",reviewsListener);
+productsListener=snap=>{const data=snap.val()||{},list=$("productList");list.innerHTML="";const entries=Object.entries(data);$("productCount").textContent="মোট প্রোডাক্ট: "+entries.length;if(!entries.length){list.innerHTML="<p>কোনো প্রোডাক্ট নেই।</p>";return;}
+entries.forEach(([id,p])=>{const div=document.createElement("div");div.className="card product";const img=document.createElement("img");img.src=p.image||"https://placehold.co/100x100";img.alt=p.name||"Product";img.onerror=()=>img.src="https://placehold.co/100x100";const info=document.createElement("div");info.className="product-info";info.innerHTML=`<b>${safe(p.name)}</b><p>দাম: ${safe(p.price)}</p><p>ক্যাটাগরি: ${safe(p.category)}</p><p style="color:green">কমিশন: ${safe(p.commission||"নেই")}</p><small>${p.active===false?"Hidden":"Published"} ${p.source==="CSV"?" · CSV Affiliate":""}</small>`;const edit=document.createElement("button");edit.className="edit";edit.textContent="Edit";edit.onclick=()=>editProduct(id,p);const del=document.createElement("button");del.className="delete";del.textContent="Delete";del.onclick=()=>deleteProduct(id);div.append(img,info,edit,del);list.appendChild(div);});};
+db.ref("products").on("value",productsListener);
+reviewsListener=snap=>{const list=$("reviewList");list.innerHTML="";let total=0;snap.forEach(pn=>{const pid=pn.key;pn.forEach(rn=>{const r=rn.val();if(!r||r.status!=="pending")return;total++;const rid=rn.key,card=document.createElement("div");card.className="card";const h=document.createElement("h3");h.textContent="Product ID: "+pid;const n=document.createElement("p");n.textContent="নাম: "+(r.name||"");const stars=document.createElement("div");stars.className="star";stars.textContent="★".repeat(Math.min(5,Math.max(0,Number(r.rating)||0)));const c=document.createElement("p");c.textContent="রিভিউ: "+(r.comment||"");const d=document.createElement("small");d.textContent=r.date||"";const a=document.createElement("button");a.className="approve";a.textContent="Approve";a.onclick=()=>approveReview(pid,rid,r,a);const del=document.createElement("button");del.className="delete";del.textContent="Delete";del.onclick=()=>deleteReview(pid,rid,del);card.append(h,n,stars,c,d,document.createElement("br"),a,del);list.appendChild(card);});});$("reviewCount").textContent="Pending: "+total;if(!total)list.innerHTML="<p>কোনো Pending Review নেই।</p>";};
+db.ref("reviewSubmissions").on("value",reviewsListener);
 }
-
-// ADD / UPDATE PRODUCT
-$("productForm").onsubmit=e=>{
- e.preventDefault();
-
- const name=$("pName").value.trim();
- const price=$("pPrice").value.trim();
- const category=$("pCategory").value.trim();
- const image=$("pImage").value.trim();
- const url=$("pUrl").value.trim();
-
- if(!validHttps(image)||!validHttps(url)){
-  $("productMessage").textContent="ছবি ও Shop URL অবশ্যই HTTPS হতে হবে।";
-  return;
- }
-
- const product={
-  name,
-  price,
-  category,
-  image,
-  url,
-  description:$("pDescription").value.trim(),
-  active:$("pActive").checked
- };
-
- $("saveBtn").disabled=true;
-
- const request=editingId
-  ? db.ref("products/"+editingId).update(product)
-  : db.ref("products").push(product);
-
- request.then(()=>{
-  $("productMessage").textContent=editingId?"প্রোডাক্ট আপডেট হয়েছে।":"প্রোডাক্ট যোগ হয়েছে।";
-  resetForm();
- }).catch(err=>{
-  $("productMessage").textContent="সমস্যা: "+err.message;
- }).finally(()=>{
-  $("saveBtn").disabled=false;
- });
-};
-
-function editProduct(id,p){
- editingId=id;
- $("pName").value=p.name||"";
- $("pPrice").value=p.price||"";
- $("pCategory").value=p.category||"";
- $("pImage").value=p.image||"";
- $("pUrl").value=p.url||"";
- $("pDescription").value=p.description||"";
- $("pActive").checked=p.active!==false;
-
- $("formTitle").textContent="প্রোডাক্ট এডিট করুন";
- $("saveBtn").textContent="আপডেট করুন";
- $("cancelEdit").classList.remove("hidden");
- $("productsTab").scrollIntoView({behavior:"smooth"});
-}
-
-function resetForm(){
- editingId=null;
- $("productForm").reset();
- $("pActive").checked=true;
- $("formTitle").textContent="নতুন প্রোডাক্ট যোগ করুন";
- $("saveBtn").textContent="প্রোডাক্ট যোগ করুন";
- $("cancelEdit").classList.add("hidden");
-}
-
+$("importCSV").onclick=async()=>{if(!confirm("CSV থেকে অ্যাফিলিয়েট পণ্য Firebase-এ যোগ করবেন?"))return;const btn=$("importCSV"),msg=$("importMessage");btn.disabled=true;msg.textContent="CSV ফাইল পড়া হচ্ছে...";try{const res=await fetch("./commission_list.csv",{cache:"no-store"});if(!res.ok)throw Error("commission_list.csv পাওয়া যায়নি। GitHub-এ ফাইলটি index.html-এর পাশে রাখুন।");const csv=await res.text(),parsed=Papa.parse(csv,{header:true,skipEmptyLines:true});if(parsed.errors.length)console.warn(parsed.errors);const updates={};let count=0;parsed.data.forEach(row=>{const code=String(row.Code||"").trim(),name=String(row.Name||"").trim(),url=String(row.Link||"").trim(),commission=String(row["Commission(%)"]||"").trim();if(!code||!name||!validHttps(url))return;updates["products/affiliate_"+code]={name,code,price:"দাম জানতে যোগাযোগ করুন",category:"অ্যাফিলিয়েট পণ্য",image:"https://placehold.co/400x300?text=Rendom+Shop",url,commission,description:"অ্যাফিলিয়েট পণ্য। Shop Now বাটনে ক্লিক করে বিক্রেতার ওয়েবসাইটে বিস্তারিত দেখুন।",active:true,source:"CSV"};count++;});if(!count)throw Error("CSV-তে কোনো সঠিক পণ্য পাওয়া যায়নি।");await db.ref().update(updates);msg.textContent=count+"টি পণ্য সফলভাবে Import হয়েছে।";}catch(e){msg.textContent="Import ব্যর্থ: "+e.message;}finally{btn.disabled=false;}};
+$("productForm").onsubmit=async e=>{e.preventDefault();const name=$("pName").value.trim(),price=$("pPrice").value.trim(),category=$("pCategory").value.trim(),image=$("pImage").value.trim(),url=$("pUrl").value.trim();if(!validHttps(image)||!validHttps(url)){$("productMessage").textContent="ছবি ও Shop URL অবশ্যই HTTPS হতে হবে।";return;}const product={name,price,category,image,url,commission:$("pCommission").value.trim(),description:$("pDescription").value.trim(),active:$("pActive").checked};$("saveBtn").disabled=true;try{if(editingId)await db.ref("products/"+editingId).update(product);else await db.ref("products").push(product);$("productMessage").textContent=editingId?"প্রোডাক্ট আপডেট হয়েছে।":"প্রোডাক্ট যোগ হয়েছে।";resetForm();}catch(err){$("productMessage").textContent="সমস্যা: "+err.message;}finally{$("saveBtn").disabled=false;}};
+function editProduct(id,p){editingId=id;$("pName").value=p.name||"";$("pPrice").value=p.price||"";$("pCategory").value=p.category||"";$("pImage").value=p.image||"";$("pUrl").value=p.url||"";$("pCommission").value=p.commission||"";$("pDescription").value=p.description||"";$("pActive").checked=p.active!==false;$("formTitle").textContent="প্রোডাক্ট এডিট করুন";$("saveBtn").textContent="আপডেট করুন";$("cancelEdit").classList.remove("hidden");$("productsTab").scrollIntoView({behavior:"smooth"});}
+function resetForm(){editingId=null;$("productForm").reset();$("pActive").checked=true;$("formTitle").textContent="নতুন প্রোডাক্ট যোগ করুন";$("saveBtn").textContent="প্রোডাক্ট যোগ করুন";$("cancelEdit").classList.add("hidden");}
 $("cancelEdit").onclick=resetForm;
-
-function deleteProduct(id){
- if(!confirm("এই প্রোডাক্টটি মুছে ফেলবেন?"))return;
-
- db.ref("products/"+id).remove()
- .then(()=>alert("প্রোডাক্ট মুছে ফেলা হয়েছে।"))
- .catch(e=>alert("সমস্যা: "+e.message));
-}
-
-// REVIEW APPROVAL
-function approveReview(productId,reviewId,r,btn){
- if(!confirm("এই রিভিউ প্রকাশ করবেন?"))return;
-
- btn.disabled=true;
-
- const approved={
-  name:r.name,
-  comment:r.comment,
-  rating:r.rating,
-  date:r.date,
-  createdAt:r.createdAt
- };
-
- const updates={};
- updates["publicReviews/"+productId+"/"+reviewId]=approved;
- updates["reviewSubmissions/"+productId+"/"+reviewId]=null;
-
- db.ref().update(updates).then(()=>{
-  alert("রিভিউ অনুমোদিত হয়েছে।");
- }).catch(e=>{
-  alert("সমস্যা: "+e.message);
-  btn.disabled=false;
- });
-}
-
-function deleteReview(productId,reviewId,btn){
- if(!confirm("এই রিভিউ মুছে ফেলবেন?"))return;
-
- btn.disabled=true;
-
- db.ref("reviewSubmissions/"+productId+"/"+reviewId).remove()
- .then(()=>{})
- .catch(e=>{
-  alert("সমস্যা: "+e.message);
-  btn.disabled=false;
- });
-}
-</script>
-</body>
-</html>
+function deleteProduct(id){if(!confirm("এই প্রোডাক্টটি মুছে ফেলবেন?"))return;db.ref("products/"+id).remove().then(()=>alert("প্রোডাক্ট মুছে ফেলা হয়েছে।")).catch(e=>alert("সমস্যা: "+e.message));}
+function approveReview(pid,rid,r,btn){if(!confirm("এই রিভিউ প্রকাশ করবেন?"))return;btn.disabled=true;const approved={name:r.name,comment:r.comment,rating:r.rating,date:r.date,createdAt:r.createdAt};const updates={};updates["publicReviews/"+pid+"/"+rid]=approved;updates["reviewSubmissions/"+pid+"/"+rid]=null;db.ref().update(updates).then(()=>alert("রিভিউ অনুমোদিত হয়েছে।")).catch(e=>{alert("সমস্যা: "+e.message);btn.disabled=false;});}
+function deleteReview(pid,rid,btn){if(!confirm("এই রিভিউ মুছে ফেলবেন?"))return;btn.disabled=true;db.ref("reviewSubmissions/"+pid+"/"+rid).remove().catch(e=>{alert("সমস্যা: "+e.message);btn.disabled=false;});}
+</script></body></html>
